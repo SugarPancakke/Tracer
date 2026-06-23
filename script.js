@@ -10,7 +10,6 @@ pixelSlider.addEventListener("input", rerender);
 function loadImages() {
 
     images = [];
-
     gallery.innerHTML = "";
 
     for (const file of filesInput.files) {
@@ -32,29 +31,89 @@ function loadImages() {
     }
 }
 
-function rerender() {
+/* =========================
+   SILHOUETTE CORE
+========================= */
 
-    gallery.innerHTML = "";
+function getDominantColor(data) {
 
-    for (const item of images) {
+    const map = new Map();
 
-        const card = document.createElement("div");
-        card.className = "card";
+    for (let i = 0; i < data.length; i += 4) {
 
-        const canvas = document.createElement("canvas");
-        canvas.width = 180;
-        canvas.height = 180;
+        const a = data[i + 3];
+        if (a < 10) continue;
 
-        drawPixelated(item.img, canvas);
+        const r = Math.round(data[i] / 32) * 32;
+        const g = Math.round(data[i + 1] / 32) * 32;
+        const b = Math.round(data[i + 2] / 32) * 32;
 
-        card.appendChild(canvas);
-        gallery.appendChild(card);
+        const key = `${r},${g},${b}`;
+
+        map.set(key, (map.get(key) || 0) + 1);
     }
+
+    let best = null;
+    let bestCount = 0;
+
+    for (const [k, v] of map) {
+        if (v > bestCount) {
+            best = k;
+            bestCount = v;
+        }
+    }
+
+    if (!best) return [255, 255, 255];
+
+    return best.split(",").map(Number);
 }
 
-function drawPixelated(img, canvas) {
+function renderSilhouette(img, canvas) {
 
     const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const scale = Math.min(
+        canvas.width / img.width,
+        canvas.height / img.height
+    );
+
+    const w = img.width * scale;
+    const h = img.height * scale;
+
+    const x = (canvas.width - w) / 2;
+    const y = (canvas.height - h) / 2;
+
+    ctx.drawImage(img, x, y, w, h);
+
+    const imageData = ctx.getImageData(
+        0, 0,
+        canvas.width,
+        canvas.height
+    );
+
+    const data = imageData.data;
+
+    const [r, g, b] = getDominantColor(data);
+
+    for (let i = 0; i < data.length; i += 4) {
+
+        if (data[i + 3] > 0) {
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+        }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+}
+
+/* =========================
+   PIXELATION ON TOP
+========================= */
+
+function applyPixelation(canvas) {
 
     const size = parseInt(pixelSlider.value);
 
@@ -64,10 +123,10 @@ function drawPixelated(img, canvas) {
 
     const tctx = temp.getContext("2d");
 
-    // draw original into tiny canvas
-    tctx.drawImage(img, 0, 0, size, size);
+    tctx.drawImage(canvas, 0, 0, size, size);
 
-    // upscale back to preview canvas
+    const ctx = canvas.getContext("2d");
+
     ctx.imageSmoothingEnabled = false;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -75,7 +134,37 @@ function drawPixelated(img, canvas) {
     ctx.drawImage(temp, 0, 0, canvas.width, canvas.height);
 }
 
-/* ZIP export */
+/* =========================
+   MAIN RENDER
+========================= */
+
+function rerender() {
+
+    gallery.innerHTML = "";
+
+    for (const item of images) {
+
+        const card = document.createElement("div");
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 180;
+        canvas.height = 180;
+
+        // STEP 1: silhouette
+        renderSilhouette(item.img, canvas);
+
+        // STEP 2: pixel on top
+        applyPixelation(canvas);
+
+        card.appendChild(canvas);
+        gallery.appendChild(card);
+    }
+}
+
+/* =========================
+   ZIP EXPORT
+========================= */
+
 document.getElementById("downloadAll").onclick = async () => {
 
     const zip = new JSZip();
@@ -84,15 +173,20 @@ document.getElementById("downloadAll").onclick = async () => {
 
     canvases.forEach((canvas, i) => {
 
-        const base64 = canvas.toDataURL("image/png").split(",")[1];
+        const base64 =
+            canvas.toDataURL("image/png").split(",")[1];
 
-        zip.file(`image_${i}.png`, base64, { base64: true });
+        zip.file(
+            `image_${i}.png`,
+            base64,
+            { base64: true }
+        );
     });
 
     const blob = await zip.generateAsync({ type: "blob" });
 
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "pixelated_images.zip";
+    a.download = "silhouette_pixelated.zip";
     a.click();
 };
