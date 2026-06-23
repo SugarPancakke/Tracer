@@ -2,48 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>PNG Simplifier</title>
 
 <link rel="stylesheet" href="style.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-</head>
 
+</head>
 <body>
 
 <div class="wrapper">
 
     <div class="title">PNG Simplifier</div>
 
-    <div class="upload-label">
-        Upload PNGs:
-        <input type="file" id="files" accept="image/png" multiple>
-    </div>
+    <label class="upload-label">
+        Upload PNGs
+        <input type="file" id="files" multiple accept="image/png">
+    </label>
 
-    <div class="controls">
+    <label class="upload-label">
+        Mode
+        <select id="mode">
+            <option value="silhouette">Silhouette</option>
+            <option value="pixel">Pixelate</option>
+        </select>
+    </label>
 
-        <div class="row">
-            <label>Mode:</label>
-            <select id="mode">
-                <option value="silhouette">Silhouette</option>
-                <option value="pixel">Pixelate</option>
-            </select>
-        </div>
+    <label class="upload-label">
+        Pixel Size:
+        <span id="detailValue">32</span>
+    </label>
 
-        <div class="row">
-            <label>Size:</label>
-            <input type="range" id="detail" min="8" max="64" value="32">
-            <span id="detailValue">32</span>
-        </div>
-
-    </div>
+    <input type="range" id="detail" min="8" max="64" value="32">
 
     <div class="buttons">
-        <button id="process">Process</button>
         <button id="downloadAll">Download ZIP</button>
     </div>
 
-    <div class="status" id="status">Waiting...</div>
+    <div class="status" id="status">Waiting for files...</div>
 
     <div id="gallery"></div>
 
