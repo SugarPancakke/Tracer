@@ -1,62 +1,268 @@
-body{
-    font-family:Arial,sans-serif;
-    margin:20px;
+body {
+    margin: 0;
+    background: #322d2d;
+    color: white;
+    font-family: monospace;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+
+    min-height: 100vh;
+
+    padding-top: 60px;
+    box-sizing: border-box;
+
+    overflow: hidden;
 }
 
-h1{
-    margin-bottom:20px;
+.wrapper {
+
+    width: 1100px;
+
+    background: #2a2525;
+
+    padding: 25px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 16px;
+
+    max-height: calc(100vh - 100px);
 }
 
-.controls{
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
-    align-items:center;
-    margin-bottom:20px;
+.title {
+    font-size: 22px;
 }
 
-#gallery{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-    gap:15px;
+.subtitle {
+    font-size: 13px;
+    color: #aaa;
 }
 
-.card{
-    border:1px solid #ccc;
-    border-radius:10px;
-    padding:10px;
+.upload-label {
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    color: #ccc;
+    font-size: 13px;
 }
 
-.card h3{
-    margin:0 0 10px;
-    font-size:14px;
-    word-break:break-all;
+input[type="file"] {
+
+    background: #3a3434;
+    color: white;
+
+    padding: 10px;
+
+    border: none;
+
+    font-family: monospace;
 }
 
-.preview{
-    width:200px;
-    height:200px;
+.slider-group {
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+}
+
+.slider-label {
+
+    font-size: 13px;
+    color: #bbb;
+}
+
+input[type="range"] {
+
+    width: 100%;
+}
+
+.mode-switch {
+
+    display: flex;
+
+    width: 260px;
+
+    background: #3a3434;
+
+    overflow: hidden;
+}
+
+.mode-btn {
+
+    flex: 1;
+
+    background: transparent;
+    color: #bbb;
+
+    border: none;
+
+    padding: 10px;
+
+    cursor: pointer;
+
+    font-family: monospace;
+
+    transition: 0.15s;
+}
+
+.mode-btn:hover {
+
+    background: #4a4444;
+}
+
+.mode-btn.active {
+
+    background: #5a5454;
+    color: white;
+}
+
+.buttons {
+
+    display: flex;
+    gap: 10px;
+}
+
+button {
+
+    background: #4d4747;
+    color: white;
+
+    border: none;
+
+    padding: 12px;
+
+    cursor: pointer;
+
+    transition: 0.15s;
+
+    font-family: monospace;
+}
+
+button:hover {
+
+    background: #5a5454;
+}
+
+.status {
+
+    font-size: 13px;
+    color: #bbb;
+}
+
+#gallery {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill, minmax(190px, 1fr));
+
+    gap: 12px;
+
+    overflow-y: auto;
+
+    padding-right: 4px;
+}
+
+.card {
+
+    background: #3a3434;
+
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.card-title {
+
+    font-size: 11px;
+
+    color: #ccc;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview {
+
+    width: 160px;
+    height: 160px;
+
+    margin: 0 auto;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     background-image:
-        linear-gradient(45deg,#ddd 25%,transparent 25%),
-        linear-gradient(-45deg,#ddd 25%,transparent 25%),
-        linear-gradient(45deg,transparent 75%,#ddd 75%),
-        linear-gradient(-45deg,transparent 75%,#ddd 75%);
+        linear-gradient(45deg,#444 25%,transparent 25%),
+        linear-gradient(-45deg,#444 25%,transparent 25%),
+        linear-gradient(45deg,transparent 75%,#444 75%),
+        linear-gradient(-45deg,transparent 75%,#444 75%);
 
-    background-size:20px 20px;
-    background-position:0 0,0 10px,10px -10px,-10px 0px;
+    background-size: 16px 16px;
 
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    background-position:
+        0 0,
+        0 8px,
+        8px -8px,
+        -8px 0px;
 }
 
-canvas{
-    max-width:200px;
-    max-height:200px;
+.preview canvas {
+
+    width: 160px;
+    height: 160px;
+
+    image-rendering: pixelated;
 }
 
-button{
-    cursor:pointer;
-    padding:8px 12px;
+.download-btn {
+
+    background: #4d4747;
+
+    color: white;
+
+    border: none;
+
+    padding: 8px;
+
+    font-size: 11px;
+
+    font-family: monospace;
+
+    cursor: pointer;
+}
+
+.download-btn:hover {
+
+    background: #5a5454;
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2a2525;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
 }
