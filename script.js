@@ -2,37 +2,46 @@ const filesInput = document.getElementById("files");
 const gallery = document.getElementById("gallery");
 
 const modeSelect = document.getElementById("mode");
+
 const detailSlider = document.getElementById("detail");
 const detailValue = document.getElementById("detailValue");
 
 const status = document.getElementById("status");
 
 let images = [];
-let processed = [];
 
-filesInput.onchange = loadImages;
+filesInput.addEventListener("change", loadImages);
 
-detailSlider.oninput = () => {
+modeSelect.addEventListener("change", rerender);
+
+detailSlider.addEventListener("input", () => {
+
     detailValue.textContent = detailSlider.value;
-};
 
-document.getElementById("process").onclick = processAll;
+    rerender();
+});
 
-document.getElementById("downloadAll").onclick = downloadZip;
+function setStatus(text) {
+    status.textContent = text;
+}
 
 async function loadImages() {
 
     images = [];
-    processed = [];
-    gallery.innerHTML = "";
 
     const files = [...filesInput.files];
 
-    status.textContent = `Loaded ${files.length} files`;
+    if (!files.length) {
+        setStatus("No files selected");
+        return;
+    }
+
+    setStatus("Loading...");
 
     for (const file of files) {
 
         const img = new Image();
+
         const url = URL.createObjectURL(file);
 
         await new Promise(res => {
@@ -45,50 +54,75 @@ async function loadImages() {
             img
         });
     }
+
+    setStatus(`Loaded ${images.length} files`);
+
+    rerender();
 }
 
-function processAll() {
+function rerender() {
 
-    if (!images.length) {
-        status.textContent = "No images loaded";
-        return;
-    }
-
-    processed = [];
     gallery.innerHTML = "";
 
     const mode = modeSelect.value;
 
-    status.textContent = "Processing...";
-
     for (const item of images) {
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const preview = document.createElement("div");
+        preview.className = "preview";
 
         const canvas = document.createElement("canvas");
         canvas.width = 90;
         canvas.height = 90;
 
-        const ctx = canvas.getContext("2d");
+        preview.appendChild(canvas);
+        card.appendChild(preview);
+
+        gallery.appendChild(card);
 
         if (mode === "silhouette") {
             renderSilhouette(item.img, canvas);
         } else {
-            renderSilhouette(item.img, canvas);
-            renderPixel(canvas);
+            renderPixel(item.img, canvas);
         }
+    }
+}
 
-        processed.push({
-            name: item.name,
-            canvas
-        });
+/* -------- SILHOUETTE -------- */
 
-        const card = document.createElement("div");
-        card.className = "card";
-        card.appendChild(canvas);
+function getDominantColor(data) {
 
-        gallery.appendChild(card);
+    const map = new Map();
+
+    for (let i = 0; i < data.length; i += 4) {
+
+        if (data[i + 3] < 20) continue;
+
+        const r = Math.round(data[i] / 32) * 32;
+        const g = Math.round(data[i + 1] / 32) * 32;
+        const b = Math.round(data[i + 2] / 32) * 32;
+
+        const key = `${r},${g},${b}`;
+
+        map.set(key, (map.get(key) || 0) + 1);
     }
 
-    status.textContent = `Done (${processed.length})`;
+    let best = null;
+    let bestCount = 0;
+
+    for (const [k, v] of map) {
+        if (v > bestCount) {
+            best = k;
+            bestCount = v;
+        }
+    }
+
+    if (!best) return [255, 255, 255];
+
+    return best.split(",").map(Number);
 }
 
 function renderSilhouette(img, canvas) {
@@ -111,35 +145,31 @@ function renderSilhouette(img, canvas) {
     ctx.drawImage(img, x, y, w, h);
 
     const data = ctx.getImageData(0, 0, 90, 90);
-    const d = data.data;
 
-    let r = 200, g = 200, b = 200;
+    const [r, g, b] = getDominantColor(data.data);
 
-    for (let i = 0; i < d.length; i += 4) {
-        if (d[i + 3] > 0) {
-            r = d[i];
-            g = d[i + 1];
-            b = d[i + 2];
-            break;
-        }
-    }
+    for (let i = 0; i < data.data.length; i += 4) {
 
-    for (let i = 0; i < d.length; i += 4) {
-        if (d[i + 3] > 0) {
-            d[i] = r;
-            d[i + 1] = g;
-            d[i + 2] = b;
+        if (data.data[i + 3] > 0) {
+            data.data[i] = r;
+            data.data[i + 1] = g;
+            data.data[i + 2] = b;
         }
     }
 
     ctx.putImageData(data, 0, 0);
 }
 
-function renderPixel(canvas) {
+/* -------- PIXELATE -------- */
+
+function renderPixel(img, canvas) {
+
+    renderSilhouette(img, canvas);
 
     const size = Number(detailSlider.value);
 
     const temp = document.createElement("canvas");
+
     temp.width = size;
     temp.height = size;
 
@@ -156,35 +186,41 @@ function renderPixel(canvas) {
     ctx.drawImage(temp, 0, 0, 90, 90);
 }
 
-function downloadZip() {
+/* -------- ZIP -------- */
 
-    if (!processed.length) {
-        status.textContent = "Nothing to download";
+document.getElementById("downloadAll").addEventListener("click", async () => {
+
+    if (!images.length) {
+        setStatus("No images");
         return;
     }
 
+    setStatus("Creating ZIP...");
+
     const zip = new JSZip();
 
-    for (const item of processed) {
+    const mode = modeSelect.value;
 
-        const base64 = item.canvas
-            .toDataURL("image/png")
-            .split(",")[1];
+    const cards = document.querySelectorAll(".card");
 
-        zip.file(
-            item.name.replace(".png", "") + ".png",
-            base64,
-            { base64: true }
-        );
-    }
+    cards.forEach((card, i) => {
 
-    zip.generateAsync({ type: "blob" }).then(blob => {
+        const canvas = card.querySelector("canvas");
 
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "simplified_pngs.zip";
-        a.click();
+        const name = images[i].name.replace(".png", "");
 
-        status.textContent = "Downloaded ZIP";
+        const base64 = canvas.toDataURL("image/png").split(",")[1];
+
+        zip.file(`${name}_${mode}.png`, base64, { base64: true });
     });
-}
+
+    const blob = await zip.generateAsync({ type: "blob" });
+
+    const a = document.createElement("a");
+
+    a.href = URL.createObjectURL(blob);
+    a.download = "output.zip";
+    a.click();
+
+    setStatus("Done");
+});
