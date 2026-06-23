@@ -1,5 +1,5 @@
-const filesInput = document.getElementById("files");
 const gallery = document.getElementById("gallery");
+const filesInput = document.getElementById("files");
 
 const colorsSlider = document.getElementById("colors");
 const detailSlider = document.getElementById("detail");
@@ -7,40 +7,55 @@ const detailSlider = document.getElementById("detail");
 const colorsValue = document.getElementById("colorsValue");
 const detailValue = document.getElementById("detailValue");
 
-const originalImages = [];
+let currentMode = "silhouette";
+
+const images = [];
 
 filesInput.addEventListener("change", loadImages);
 
-colorsSlider.addEventListener("input", rerender);
-detailSlider.addEventListener("input", rerender);
-
 colorsSlider.addEventListener("input", () => {
     colorsValue.textContent = colorsSlider.value;
+    rerender();
 });
 
 detailSlider.addEventListener("input", () => {
     detailValue.textContent = detailSlider.value;
+    rerender();
+});
+
+document.querySelectorAll(".mode-btn").forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+        document
+            .querySelectorAll(".mode-btn")
+            .forEach(x => x.classList.remove("active"));
+
+        btn.classList.add("active");
+
+        currentMode = btn.dataset.mode;
+
+        rerender();
+    });
+
 });
 
 async function loadImages() {
 
-    gallery.innerHTML = "";
-    originalImages.length = 0;
+    images.length = 0;
 
-    const files = [...filesInput.files];
-
-    for (const file of files) {
-
-        const url = URL.createObjectURL(file);
+    for (const file of filesInput.files) {
 
         const img = new Image();
+
+        const url = URL.createObjectURL(file);
 
         await new Promise(resolve => {
             img.onload = resolve;
             img.src = url;
         });
 
-        originalImages.push({
+        images.push({
             name: file.name,
             img
         });
@@ -53,129 +68,217 @@ function rerender() {
 
     gallery.innerHTML = "";
 
-    originalImages.forEach(item => {
+    images.forEach(item => {
 
         const card = document.createElement("div");
         card.className = "card";
 
-        const title = document.createElement("h3");
+        const title = document.createElement("div");
+        title.className = "card-title";
         title.textContent = item.name;
 
         const preview = document.createElement("div");
         preview.className = "preview";
 
         const canvas = document.createElement("canvas");
-
-        processImage(item.img, canvas);
-
-        const button = document.createElement("button");
-        button.textContent = "Download PNG";
-
-        button.onclick = () => {
-            downloadCanvas(canvas, item.name);
-        };
+        canvas.width = 160;
+        canvas.height = 160;
 
         preview.appendChild(canvas);
 
+        if (currentMode === "silhouette") {
+            renderSilhouette(item.img, canvas);
+        } else {
+            renderPixel(item.img, canvas);
+        }
+
+        const downloadBtn =
+            document.createElement("button");
+
+        downloadBtn.className =
+            "download-btn";
+
+        downloadBtn.textContent =
+            "Download PNG";
+
+        downloadBtn.onclick = () => {
+
+            const a =
+                document.createElement("a");
+
+            a.href =
+                canvas.toDataURL("image/png");
+
+            a.download =
+                item.name.replace(".png", "") +
+                "_" +
+                currentMode +
+                ".png";
+
+            a.click();
+        };
+
         card.appendChild(title);
         card.appendChild(preview);
-        card.appendChild(button);
+        card.appendChild(downloadBtn);
 
         gallery.appendChild(card);
+
     });
 }
 
-function processImage(img, canvas) {
+function getDominantColor(data) {
 
-    const size = Number(detailSlider.value);
+    const map = new Map();
 
-    canvas.width = size;
-    canvas.height = size;
+    for (let i = 0; i < data.length; i += 4) {
 
-    const ctx = canvas.getContext("2d");
+        const a = data[i + 3];
 
-    ctx.clearRect(0,0,size,size);
+        if (a < 20) continue;
 
-    const scale = Math.min(
-        size / img.width,
-        size / img.height
-    );
+        const r =
+            Math.round(data[i] / 32) * 32;
 
-    const w = img.width * scale;
-    const h = img.height * scale;
+        const g =
+            Math.round(data[i + 1] / 32) * 32;
 
-    const x = (size - w) / 2;
-    const y = (size - h) / 2;
+        const b =
+            Math.round(data[i + 2] / 32) * 32;
 
-    ctx.drawImage(img, x, y, w, h);
+        const key = `${r},${g},${b}`;
 
-    const imageData = ctx.getImageData(
+        map.set(
+            key,
+            (map.get(key) || 0) + 1
+        );
+    }
+
+    let best = null;
+    let count = 0;
+
+    for (const [key, value] of map) {
+
+        if (value > count) {
+            count = value;
+            best = key;
+        }
+    }
+
+    if (!best)
+        return [255,255,255];
+
+    return best.split(",").map(Number);
+}
+
+function renderSilhouette(img, canvas) {
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.clearRect(
         0,
         0,
         canvas.width,
         canvas.height
     );
 
+    const scale = Math.min(
+        canvas.width / img.width,
+        canvas.height / img.height
+    );
+
+    const w = img.width * scale;
+    const h = img.height * scale;
+
+    const x =
+        (canvas.width - w) / 2;
+
+    const y =
+        (canvas.height - h) / 2;
+
+    ctx.drawImage(
+        img,
+        x,
+        y,
+        w,
+        h
+    );
+
+    const imageData =
+        ctx.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
     const data = imageData.data;
 
-    const levels = Number(colorsSlider.value);
-
-    const step = 255 / Math.max(levels - 1, 1);
+    const [r,g,b] =
+        getDominantColor(data);
 
     for(let i = 0; i < data.length; i += 4){
 
-        if(data[i + 3] === 0){
-            continue;
+        if(data[i + 3] > 0){
+
+            data[i] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
         }
-
-        data[i] =
-            Math.round(data[i] / step) * step;
-
-        data[i + 1] =
-            Math.round(data[i + 1] / step) * step;
-
-        data[i + 2] =
-            Math.round(data[i + 2] / step) * step;
     }
 
-    ctx.putImageData(imageData,0,0);
+    ctx.putImageData(
+        imageData,
+        0,
+        0
+    );
+}
 
-    const finalCanvas = document.createElement("canvas");
+function renderPixel(img, canvas) {
 
-    finalCanvas.width = 200;
-    finalCanvas.height = 200;
+    renderSilhouette(img, canvas);
 
-    const fctx = finalCanvas.getContext("2d");
+    const ctx =
+        canvas.getContext("2d");
 
-    fctx.imageSmoothingEnabled = false;
+    const size =
+        Number(detailSlider.value);
 
-    fctx.drawImage(
+    const temp =
+        document.createElement("canvas");
+
+    temp.width = size;
+    temp.height = size;
+
+    const tctx =
+        temp.getContext("2d");
+
+    tctx.drawImage(
         canvas,
         0,
         0,
-        200,
-        200
+        size,
+        size
     );
 
-    canvas.width = 200;
-    canvas.height = 200;
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled =
+        false;
 
-    ctx.drawImage(finalCanvas,0,0);
-}
-
-function downloadCanvas(canvas, filename){
-
-    const link = document.createElement("a");
-
-    link.href = canvas.toDataURL("image/png");
-
-    link.download =
-        filename.replace(".png","") +
-        "_simplified.png";
-
-    link.click();
+    ctx.drawImage(
+        temp,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 }
 
 document
@@ -184,24 +287,29 @@ document
 
     const zip = new JSZip();
 
-    const cards = document.querySelectorAll(".card");
+    const cards =
+        document.querySelectorAll(".card");
 
     cards.forEach(card => {
 
         const name =
-            card.querySelector("h3").textContent;
+            card.querySelector(".card-title")
+                .textContent;
 
         const canvas =
             card.querySelector("canvas");
 
-        const png =
-            canvas.toDataURL("image/png")
-            .split(",")[1];
+        const base64 =
+            canvas
+                .toDataURL("image/png")
+                .split(",")[1];
 
         zip.file(
             name.replace(".png","") +
-            "_simplified.png",
-            png,
+            "_" +
+            currentMode +
+            ".png",
+            base64,
             { base64:true }
         );
     });
@@ -211,14 +319,15 @@ document
             type:"blob"
         });
 
-    const link =
+    const a =
         document.createElement("a");
 
-    link.href =
+    a.href =
         URL.createObjectURL(blob);
 
-    link.download =
-        "simplified_pngs.zip";
+    a.download =
+        currentMode +
+        "_images.zip";
 
-    link.click();
+    a.click();
 });
