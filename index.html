@@ -1,37 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PNG to Vector Art</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNG Simplifier</title>
 
     <link rel="stylesheet" href="style.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/imagetracerjs@1.2.6/imagetracer_v1.2.6.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
-    <h1>PNG → Vector Art</h1>
+    <h1>PNG Simplifier</h1>
 
-    <input type="file" id="file" accept="image/png">
+    <div class="controls">
 
-    <label>
-        Detail Level
-        <input type="range" id="detail" min="2" max="32" value="8">
-    </label>
+        <input
+            type="file"
+            id="files"
+            multiple
+            accept="image/png"
+        >
 
-    <div class="preview">
-        <div class="box">
-            <h2>Original</h2>
-            <img id="original">
-        </div>
+        <label>
+            Colors:
+            <span id="colorsValue">6</span>
+        </label>
 
-        <div class="box">
-            <h2>Vector</h2>
-            <div id="result"></div>
-        </div>
+        <input
+            type="range"
+            id="colors"
+            min="2"
+            max="16"
+            value="6"
+        >
+
+        <label>
+            Detail:
+            <span id="detailValue">32</span>
+        </label>
+
+        <input
+            type="range"
+            id="detail"
+            min="8"
+            max="128"
+            value="32"
+            step="4"
+        >
+
+        <button id="downloadAll">
+            Download All PNGs
+        </button>
+
     </div>
 
-    <button id="download">Download SVG</button>
+    <div id="gallery"></div>
 
     <script src="script.js"></script>
 
