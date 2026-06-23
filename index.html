@@ -1,63 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PNG Simplifier</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="style.css">
+<title>PNG Shape Simplifier</title>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
-    <h1>PNG Simplifier</h1>
+<div class="wrapper">
 
-    <div class="controls">
+    <div class="title">
+        PNG Shape Simplifier
+    </div>
 
+    <div class="subtitle">
+        Convert transparent PNGs into silhouettes or pixelated silhouettes.
+    </div>
+
+    <label class="upload-label">
+        Upload PNGs:
         <input
             type="file"
             id="files"
-            multiple
             accept="image/png"
+            multiple
         >
+    </label>
 
-        <label>
-            Colors:
-            <span id="colorsValue">6</span>
-        </label>
+    <div class="mode-switch">
 
-        <input
-            type="range"
-            id="colors"
-            min="2"
-            max="16"
-            value="6"
-        >
+        <button
+            class="mode-btn active"
+            data-mode="silhouette">
+            Silhouette
+        </button>
 
-        <label>
-            Detail:
+        <button
+            class="mode-btn"
+            data-mode="pixel">
+            Pixelate
+        </button>
+
+    </div>
+
+    <div class="slider-group">
+
+        <div class="slider-label">
+            Pixel Size:
             <span id="detailValue">32</span>
-        </label>
+        </div>
 
         <input
             type="range"
             id="detail"
             min="8"
-            max="128"
+            max="64"
             value="32"
-            step="4"
+            step="2"
         >
 
+    </div>
+
+    <div class="buttons">
+
         <button id="downloadAll">
-            Download All PNGs
+            Download ZIP
         </button>
 
     </div>
 
+    <div class="status" id="status">
+        Waiting for PNGs...
+    </div>
+
     <div id="gallery"></div>
 
-    <script src="script.js"></script>
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
