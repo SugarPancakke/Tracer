@@ -7,7 +7,6 @@
 <title>PNG Simplifier</title>
 
 <link rel="stylesheet" href="style.css">
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 </head>
@@ -15,33 +14,18 @@
 
 <div class="wrapper">
 
-    <div class="title">PNG Simplifier</div>
+    <input type="file" id="files" multiple accept="image/png">
 
-    <label class="upload-label">
-        Upload PNGs
-        <input type="file" id="files" multiple accept="image/png">
-    </label>
+    <div class="controls">
 
-    <label class="upload-label">
-        Mode
-        <select id="mode">
-            <option value="silhouette">Silhouette</option>
-            <option value="pixel">Pixelate</option>
-        </select>
-    </label>
+        <label>
+            Pixel
+            <input type="range" id="pixel" min="4" max="80" value="32">
+        </label>
 
-    <label class="upload-label">
-        Pixel Size:
-        <span id="detailValue">32</span>
-    </label>
+        <button id="downloadAll">ZIP</button>
 
-    <input type="range" id="detail" min="8" max="64" value="32">
-
-    <div class="buttons">
-        <button id="downloadAll">Download ZIP</button>
     </div>
-
-    <div class="status" id="status">Waiting for files...</div>
 
     <div id="gallery"></div>
 
