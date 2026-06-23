@@ -2,81 +2,48 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>PNG Shape Simplifier</title>
+<title>PNG Simplifier</title>
 
 <link rel="stylesheet" href="style.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
+
 <body>
 
 <div class="wrapper">
 
-    <div class="title">
-        PNG Shape Simplifier
-    </div>
+    <div class="title">PNG Simplifier</div>
 
-    <div class="subtitle">
-        Convert transparent PNGs into silhouettes or pixelated silhouettes.
-    </div>
-
-    <label class="upload-label">
+    <div class="upload-label">
         Upload PNGs:
-        <input
-            type="file"
-            id="files"
-            accept="image/png"
-            multiple
-        >
-    </label>
-
-    <div class="mode-switch">
-
-        <button
-            class="mode-btn active"
-            data-mode="silhouette">
-            Silhouette
-        </button>
-
-        <button
-            class="mode-btn"
-            data-mode="pixel">
-            Pixelate
-        </button>
-
+        <input type="file" id="files" accept="image/png" multiple>
     </div>
 
-    <div class="slider-group">
+    <div class="controls">
 
-        <div class="slider-label">
-            Pixel Size:
-            <span id="detailValue">32</span>
+        <div class="row">
+            <label>Mode:</label>
+            <select id="mode">
+                <option value="silhouette">Silhouette</option>
+                <option value="pixel">Pixelate</option>
+            </select>
         </div>
 
-        <input
-            type="range"
-            id="detail"
-            min="8"
-            max="64"
-            value="32"
-            step="2"
-        >
+        <div class="row">
+            <label>Size:</label>
+            <input type="range" id="detail" min="8" max="64" value="32">
+            <span id="detailValue">32</span>
+        </div>
 
     </div>
 
     <div class="buttons">
-
-        <button id="downloadAll">
-            Download ZIP
-        </button>
-
+        <button id="process">Process</button>
+        <button id="downloadAll">Download ZIP</button>
     </div>
 
-    <div class="status" id="status">
-        Waiting for PNGs...
-    </div>
+    <div class="status" id="status">Waiting...</div>
 
     <div id="gallery"></div>
 
