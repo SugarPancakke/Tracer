@@ -25,7 +25,6 @@ input[type="file"] {
     padding: 6px;
     border: none;
     font-family: monospace;
-    font-size: 12px;
 }
 
 .controls {
@@ -64,16 +63,9 @@ button:hover {
     gap: 8px;
 }
 
-.card {
-    background: #3a3434;
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
 canvas {
     width: 180px;
     height: 180px;
     image-rendering: pixelated;
+    background: transparent;
 }
