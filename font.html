@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Font Preview Tool</title>
+<style>
+body{
+  font-family: system-ui, sans-serif;
+  margin:20px;
+}
+textarea{
+  width:100%;
+  height:120px;
+}
+#preview{
+  margin-top:20px;
+  padding:20px;
+  border:1px solid #ccc;
+  min-height:120px;
+
+  /* Better typography similar to modern social platforms */
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+</style>
+</head>
+<body>
+<h2>Font Preview Tool</h2>
+
+<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"><br><br>
+
+<textarea id="textInput" placeholder="Type text here..."></textarea><br><br>
+
+<label>Font size:
+<input type="range" id="fontSize" min="8" max="200" value="48">
+<span id="sizeLabel">48</span>px
+</label>
+
+<br><br>
+
+<label>Letter spacing:
+<input type="range" id="letterSpacing" min="-5" max="20" step="0.1" value="0">
+<span id="spacingLabel">0</span>px
+</label>
+
+<div id="preview"></div>
+
+<script>
+const textInput = document.getElementById('textInput');
+const preview = document.getElementById('preview');
+
+function update(){
+  preview.textContent = textInput.value;
+  preview.style.fontSize = fontSize.value + 'px';
+  preview.style.letterSpacing = letterSpacing.value + 'px';
+  sizeLabel.textContent = fontSize.value;
+  spacingLabel.textContent = letterSpacing.value;
+}
+
+textInput.addEventListener('input', update);
+fontSize.addEventListener('input', update);
+letterSpacing.addEventListener('input', update);
+
+document.getElementById('fontFile').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const fontName = 'UploadedFont';
+
+  const font = new FontFace(fontName, await file.arrayBuffer());
+  await font.load();
+  document.fonts.add(font);
+
+  preview.style.fontFamily = fontName;
+});
+
+update();
+</script>
+</body>
+</html>
