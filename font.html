@@ -3,48 +3,78 @@
 <head>
 <meta charset="utf-8">
 <title>Font Preview Tool</title>
+
 <style>
 body{
   font-family: system-ui, sans-serif;
   margin:20px;
+  background:#f5f5f5;
 }
-textarea{
-  width:100%;
-  height:120px;
-}
-#preview{
-  margin-top:20px;
-  padding:20px;
-  border:1px solid #ccc;
-  min-height:120px;
 
-  /* Better typography similar to modern social platforms */
+/* Controls */
+.controls{
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Preview container like Twitter column */
+#preview{
+  max-width: 600px;          /* 👈 key Twitter-like width */
+  margin: 30px auto;
+  padding: 20px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+
+  min-height: 120px;
+
+  /* typography improvements */
   text-rendering: optimizeLegibility;
   font-kerning: normal;
   font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
   white-space: pre-wrap;
   word-wrap: break-word;
+  line-height: 1.4;
+}
+
+/* inputs */
+textarea{
+  width:100%;
+  height:120px;
+  font-size:14px;
+}
+
+label{
+  display:block;
+  margin-top:10px;
 }
 </style>
 </head>
+
 <body>
-<h2>Font Preview Tool</h2>
 
-<input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"><br><br>
+<div class="controls">
+  <h2>Font Preview Tool</h2>
 
-<textarea id="textInput" placeholder="Type text here..."></textarea><br><br>
+  <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2"><br><br>
 
-<label>Font size:
-<input type="range" id="fontSize" min="8" max="200" value="48">
-<span id="sizeLabel">48</span>px
-</label>
+  <textarea id="textInput" placeholder="Type text here..."></textarea>
 
-<br><br>
+  <label>
+    Font size:
+    <input type="range" id="fontSize" min="8" max="200" value="48">
+    <span id="sizeLabel">48</span>px
+  </label>
 
-<label>Letter spacing:
-<input type="range" id="letterSpacing" min="-5" max="20" step="0.1" value="0">
-<span id="spacingLabel">0</span>px
-</label>
+  <label>
+    Letter spacing:
+    <input type="range" id="letterSpacing" min="-5" max="20" step="0.1" value="0">
+    <span id="spacingLabel">0</span>px
+  </label>
+</div>
 
 <div id="preview"></div>
 
@@ -52,10 +82,17 @@ textarea{
 const textInput = document.getElementById('textInput');
 const preview = document.getElementById('preview');
 
+const fontSize = document.getElementById('fontSize');
+const letterSpacing = document.getElementById('letterSpacing');
+const sizeLabel = document.getElementById('sizeLabel');
+const spacingLabel = document.getElementById('spacingLabel');
+
 function update(){
-  preview.textContent = textInput.value;
+  preview.textContent = textInput.value || "Type something...";
+
   preview.style.fontSize = fontSize.value + 'px';
   preview.style.letterSpacing = letterSpacing.value + 'px';
+
   sizeLabel.textContent = fontSize.value;
   spacingLabel.textContent = letterSpacing.value;
 }
@@ -68,16 +105,23 @@ document.getElementById('fontFile').addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const fontName = 'UploadedFont';
+  try {
+    const fontName = 'UploadedFont';
 
-  const font = new FontFace(fontName, await file.arrayBuffer());
-  await font.load();
-  document.fonts.add(font);
+    const font = new FontFace(fontName, await file.arrayBuffer());
+    await font.load();
 
-  preview.style.fontFamily = fontName;
+    document.fonts.add(font);
+    preview.style.fontFamily = fontName + ", system-ui, sans-serif";
+
+  } catch (err) {
+    console.error(err);
+    alert("Font failed to load");
+  }
 });
 
 update();
 </script>
+
 </body>
 </html>
